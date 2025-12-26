@@ -1,0 +1,11 @@
+# Simple 2-bit XOR circuit
+# Format: <num_inputs> <num_gates> <num_outputs>
+2 1 1
+
+# Gates: each line has <input1> <input2> <output> <type>
+# type: 0=AND, 1=XOR
+# Wire indices: inputs are 0-1, gate outputs start at 2
+0 1 2 1
+
+# Output wires (one per line)
+2

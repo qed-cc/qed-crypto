@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(basefold_raa REQUIRED)
+find_dependency(gf128 REQUIRED)
+find_dependency(sha3 REQUIRED)
+find_dependency(circuit_evaluator REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/formal_proof_circuitsTargets.cmake")
+
+check_required_components(formal_proof_circuits)

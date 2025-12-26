@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <FSTAR_HOME>..\..\..</FSTAR_HOME>
+    <!-- Custom FStar flags used in this project . -->
+    <FSTAR_FLAGS>--ext context_pruning</FSTAR_FLAGS>
+  </PropertyGroup>
+  <Import Project="$(FSTAR_HOME)\examples\fsharp.extraction.targets" />
+  <ItemGroup>
+    <Compile Include="..\Huffman.fst" Link="Huffman.fst" />
+    <None Include="Huffman.fsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.3.4" />
+    <PackageReference Include="FSharp.Compatibility.OCaml" Version="0.1.14" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="All" Version="1.0.0-preview.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ulibfs">
+      <HintPath>$(FSTAR_HOME)\bin\ulibfs.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,58 @@
+# 4-bit Adder Circuit for Testing
+# Implements: OUT = A + B where A and B are 4-bit numbers
+#
+# Inputs: 8 bits (A[3:0], B[3:0])
+# Outputs: 5 bits (Sum[4:0], includes carry out)
+# 
+# This uses a ripple-carry adder design
+
+CIRCUIT ADD_4BIT
+INPUTS 8
+OUTPUTS 5
+GATES 20  # 4 full adders * 5 gates each
+
+# Wire allocation:
+# 0: unused
+# 1: constant 0
+# 2: constant 1
+# 3-6: A[0] to A[3] (input bits 0-3)
+# 7-10: B[0] to B[3] (input bits 4-7)
+# 11-14: Sum[0] to Sum[3] (intermediate)
+# 15-17: Carry bits C1, C2, C3
+# 18: Carry out (Sum[4])
+
+# Full Adder 0: Sum[0] = A[0] + B[0] + 0
+# Sum bit: A[0] XOR B[0]
+GATE XOR 3 7 11
+# Carry: A[0] AND B[0]
+GATE AND 3 7 15
+
+# Full Adder 1: Sum[1] = A[1] + B[1] + C1
+# A[1] XOR B[1]
+GATE XOR 4 8 19
+# (A[1] XOR B[1]) XOR C1 = Sum[1]
+GATE XOR 19 15 12
+# A[1] AND B[1]
+GATE AND 4 8 20
+# (A[1] XOR B[1]) AND C1
+GATE AND 19 15 21
+# C2 = (A[1] AND B[1]) OR ((A[1] XOR B[1]) AND C1)
+GATE XOR 20 21 16  # Using XOR as OR for simplicity
+
+# Full Adder 2: Sum[2] = A[2] + B[2] + C2
+GATE XOR 5 9 22
+GATE XOR 22 16 13
+GATE AND 5 9 23
+GATE AND 22 16 24
+GATE XOR 23 24 17
+
+# Full Adder 3: Sum[3] = A[3] + B[3] + C3
+GATE XOR 6 10 25
+GATE XOR 25 17 14
+GATE AND 6 10 26
+GATE AND 25 17 27
+GATE XOR 26 27 18
+
+# Example:
+# A = 0011 (3), B = 0101 (5)
+# Result should be 01000 (8)

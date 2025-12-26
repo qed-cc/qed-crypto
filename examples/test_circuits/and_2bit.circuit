@@ -1,0 +1,10 @@
+# Simple 2-input AND gate
+# Format: <num_inputs> <num_gates> <num_outputs>
+2 1 1
+
+# Gates: Format: <gate_type> <input1> <input2> <output>
+# gate_type: 0=AND, 1=XOR
+0 0 1 2
+
+# Output wires
+2

@@ -1,0 +1,48 @@
+# Build directories (CMake out-of-source builds)
+# Ignore default build directory and any variant (e.g., build_gfni, build_opt)
+build/
+build*/
+CMakeFiles/
+# CMake generated files
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Object and library files
+*.o
+*.obj
+*.lo
+*.la
+*.al
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+
+# Logs and temporary files
+*.log
+*.tmp
+*~
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+
+# Misc
+.DS_Store
+ 
+# Staging directory from install
+build-stage/
+
+# Remove unneeded test harnesses and sample artifacts
+test_find/
+pkg_test/
+
+# Ignore root-level example executable
+/example
+/test_gf128

@@ -1,0 +1,76 @@
+name: Build F* (macos)
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@master
+
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 4.14.2
+
+      - name: Prepare
+        run: |
+          brew install opam bash gnu-getopt coreutils gnu-sed make
+          ./.scripts/get_fstar_z3.sh $HOME/bin
+          echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
+          opam install --deps-only ./fstar.opam
+
+      - name: Set version
+        run: |
+          # Setting FSTAR_VERSION for nightly and release builds. If unset,
+          # we use $(version.txt)~dev. Setting it avoids the ~dev.
+          if [[ "${{github.workflow_ref}}" =~ "nightly.yml" ]]; then
+            echo FSTAR_VERSION="nightly-$(date -I)" >> $GITHUB_ENV
+          elif [[ "${{github.workflow_ref}}" =~ "release.yml" ]]; then
+            echo FSTAR_VERSION="$(cat version.txt)" >> $GITHUB_ENV
+            echo FSTAR_RELEASE=1 >> $GITHUB_ENV
+          fi
+
+      # Note *g*make below!
+      # NB: release workflow later adds version number to the name
+      - name: Build package
+        run: |
+          eval $(opam env)
+          KERNEL=$(uname -s)
+          ARCH=$(uname -m)
+          export FSTAR_TAG=-$KERNEL-$ARCH
+          gmake -skj$(nproc) package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: fstar-*
+          name: package-mac
+
+  smoke_test:
+    needs: build
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      # no 4.8.5 on mac, could call script but just admit.
+      # - uses: cda-tum/setup-z3@main
+      #   with:
+      #     version: 4.8.5
+
+      - name: Get fstar package
+        uses: actions/download-artifact@v4
+        with:
+          name: package-mac
+
+      - run: tar xzf fstar*.tar.gz
+
+      - name: Smoke test
+        run: |
+          ./fstar/bin/fstar.exe --admit_smt_queries true fstar/lib/fstar/ulib/Prims.fst -f
+          echo -e "module A\nopen FStar.Mul\nlet _ = assert (forall x. 1 + x*x > 0)" > A.fst
+          ./fstar/bin/fstar.exe --admit_smt_queries true A.fst

@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025 Rhett Creighton
+
+# Out-of-source build directories
+/build/
+/build-clang/
+
+# Compiled object files and libraries
+*.o
+*.lo
+*.a
+*.so
+*.dylib
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+Makefile.*
+
+# Editor and OS files
+*~
+*.swp
+.DS_Store
+## XKCP Keccak cores: keep only needed AVX-512/AVX2 paths, ignore rest of third_party
+third_party/*
+!third_party/KeccakCodePackage/lib/
+!third_party/KeccakCodePackage/lib/common/
+!third_party/KeccakCodePackage/lib/common/*
+!third_party/KeccakCodePackage/lib/low/
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600/AVX512/C/
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600/AVX512/C/*
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600-times8/AVX512/
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600-times8/AVX512/*
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600-times8/AVX512/u12/
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600-times8/AVX512/u12/*
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600/AVX512
+!third_party/KeccakCodePackage/lib/low/KeccakP-1600-times8/AVX512
+
+!third_party/KeccakCodePackage/lib/common
+!third_party/KeccakCodePackage/lib/low
+!third_party/KeccakCodePackage/lib
+!third_party/KeccakCodePackage/LICENSE

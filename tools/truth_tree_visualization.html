@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gate Computer Truth Bucket Tree</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        #header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        #tree-container {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        #sidebar {
+            width: 350px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        
+        .node circle {
+            cursor: pointer;
+            stroke-width: 3px;
+        }
+        
+        .node text {
+            font: 12px sans-serif;
+            cursor: pointer;
+        }
+        
+        .link {
+            fill: none;
+            stroke: #999;
+            stroke-width: 2px;
+            opacity: 0.6;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 5px;
+            pointer-events: none;
+            font-size: 12px;
+            max-width: 300px;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        #info-panel h3 {
+            margin-top: 0;
+        }
+        
+        #info-panel p {
+            margin: 5px 0;
+        }
+        
+        #controls {
+            margin-bottom: 15px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #4CAF50;
+            color: white;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        .stat-box {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff6b6b, #feca57, #48dbfb, #4CAF50);
+            transition: width 0.3s ease;
+        }
+        
+        .path-highlight {
+            stroke: #ff6b6b !important;
+            stroke-width: 4px !important;
+            opacity: 1 !important;
+        }
+        
+        .node-highlight {
+            stroke: #ff6b6b !important;
+            stroke-width: 5px !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>Gate Computer Truth Bucket Tree</h1>
+        <p>Complete dependency tree from fundamental axioms to master truths</p>
+    </div>
+    
+    <div id="container">
+        <div id="tree-container">
+            <svg id="tree" width="1200" height="800"></svg>
+        </div>
+        
+        <div id="sidebar">
+            <div id="controls">
+                <button onclick="expandAll()">Expand All</button>
+                <button onclick="collapseAll()">Collapse All</button>
+                <button onclick="showAxiomPaths()">Show Axiom Paths</button>
+                <button onclick="resetView()">Reset View</button>
+            </div>
+            
+            <div id="info-panel">
+                <h3>Truth Details</h3>
+                <p>Click on a node to see details</p>
+            </div>
+            
+            <div class="stat-box">
+                <h4>Tree Statistics</h4>
+                <p>Total Truths: <strong id="total-truths">0</strong></p>
+                <p>Tree Depth: <strong id="tree-depth">0</strong></p>
+                <p>Axioms: <strong id="axiom-count">0</strong></p>
+                <p>Master Confidence: <strong id="master-confidence">0%</strong></p>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b"></div>
+                    <span>Axioms</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4"></div>
+                    <span>Foundations</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #45b7d1"></div>
+                    <span>Field Theory</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #96ceb4"></div>
+                    <span>Cryptographic</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #feca57"></div>
+                    <span>Protocol</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff9ff3"></div>
+                    <span>Security</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #54a0ff"></div>
+                    <span>Implementation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #10ac84"></div>
+                    <span>System</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ee5a6f"></div>
+                    <span>Performance</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff4757"></div>
+                    <span>Master</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tooltip" style="opacity: 0;"></div>
+    
+    <script>
+        // Truth tree data (would be loaded from truth_bucket_tree.json in practice)
+        const treeData = {
+            "id": "MASTER",
+            "name": "Gate Computer fully verified and secure",
+            "category": "master",
+            "confidence": 99.0,
+            "level": 9,
+            "confidence_path": 90.4,
+            "children": [
+                {
+                    "id": "M001",
+                    "name": "Gate Computer is cryptographically secure",
+                    "category": "master",
+                    "confidence": 99.0,
+                    "level": 8,
+                    "children": [
+                        {
+                            "id": "T502",
+                            "name": "Combined soundness 2^-121",
+                            "category": "security",
+                            "confidence": 99.5,
+                            "level": 7,
+                            "children": [
+                                {
+                                    "id": "T500",
+                                    "name": "121-bit soundness achieved",
+                                    "category": "security",
+                                    "confidence": 99.5,
+                                    "level": 6,
+                                    "children": [
+                                        {
+                                            "id": "T405",
+                                            "name": "Sumcheck soundness error",
+                                            "category": "protocol",
+                                            "confidence": 99.6,
+                                            "level": 5,
+                                            "children": [
+                                                {
+                                                    "id": "T404",
+                                                    "name": "Sumcheck protocol complete",
+                                                    "category": "protocol",
+                                                    "confidence": 99.6,
+                                                    "level": 4,
+                                                    "children": [
+                                                        {
+                                                            "id": "T207",
+                                                            "name": "Field operations are associative",
+                                                            "category": "field",
+                                                            "confidence": 99.8,
+                                                            "level": 3,
+                                                            "children": [
+                                                                {
+                                                                    "id": "T201",
+                                                                    "name": "F[x]/(p(x)) ≅ GF(2^128)",
+                                                                    "category": "field",
+                                                                    "confidence": 99.8,
+                                                                    "level": 2,
+                                                                    "children": [
+                                                                        {
+                                                                            "id": "T104",
+                                                                            "name": "Polynomial ring F[x] forms ring",
+                                                                            "category": "foundation",
+                                                                            "confidence": 99.9,
+                                                                            "level": 1,
+                                                                            "children": [
+                                                                                {
+                                                                                    "id": "A002",
+                                                                                    "name": "ZFC set theory axioms",
+                                                                                    "category": "axiom",
+                                                                                    "confidence": 100.0,
+                                                                                    "level": 0,
+                                                                                    "children": []
+                                                                                },
+                                                                                {
+                                                                                    "id": "A003",
+                                                                                    "name": "GF(2) field axioms",
+                                                                                    "category": "axiom",
+                                                                                    "confidence": 100.0,
+                                                                                    "level": 0,
+                                                                                    "children": []
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        
+        // Category colors
+        const categoryColors = {
+            'axiom': '#ff6b6b',
+            'foundation': '#4ecdc4',
+            'field': '#45b7d1',
+            'crypto': '#96ceb4',
+            'protocol': '#feca57',
+            'security': '#ff9ff3',
+            'implementation': '#54a0ff',
+            'system': '#10ac84',
+            'performance': '#ee5a6f',
+            'master': '#ff4757'
+        };
+        
+        // Set up SVG
+        const margin = {top: 40, right: 120, bottom: 40, left: 120};
+        const width = 1200 - margin.left - margin.right;
+        const height = 800 - margin.top - margin.bottom;
+        
+        const svg = d3.select("#tree")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+        
+        // Create tree layout
+        const tree = d3.tree()
+            .size([height, width])
+            .separation((a, b) => (a.parent == b.parent ? 1 : 1.5));
+        
+        // Create hierarchy
+        const root = d3.hierarchy(treeData);
+        root.x0 = height / 2;
+        root.y0 = 0;
+        
+        // Collapse after the first level
+        root.children.forEach(collapse);
+        
+        // Tooltip
+        const tooltip = d3.select('.tooltip');
+        
+        update(root);
+        updateStats();
+        
+        function update(source) {
+            // Compute tree layout
+            const treeData = tree(root);
+            const nodes = treeData.descendants();
+            const links = treeData.links();
+            
+            // Update nodes
+            const node = svg.selectAll('g.node')
+                .data(nodes, d => d.id || (d.id = ++i));
+            
+            // Enter new nodes
+            const nodeEnter = node.enter().append('g')
+                .attr('class', 'node')
+                .attr('transform', d => `translate(${source.y0},${source.x0})`)
+                .on('click', click)
+                .on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip);
+            
+            nodeEnter.append('circle')
+                .attr('r', 1e-6)
+                .style('fill', d => d._children ? categoryColors[d.data.category] : "white")
+                .style('stroke', d => categoryColors[d.data.category]);
+            
+            nodeEnter.append('text')
+                .attr('dy', '.35em')
+                .attr('x', d => d.children || d._children ? -13 : 13)
+                .attr('text-anchor', d => d.children || d._children ? 'end' : 'start')
+                .text(d => d.data.id)
+                .style('fill-opacity', 1e-6);
+            
+            // Update
+            const nodeUpdate = nodeEnter.merge(node);
+            
+            nodeUpdate.transition()
+                .duration(750)
+                .attr('transform', d => `translate(${d.y},${d.x})`);
+            
+            nodeUpdate.select('circle')
+                .attr('r', d => 8 - d.depth * 0.5)
+                .style('fill', d => d._children ? categoryColors[d.data.category] : "white");
+            
+            nodeUpdate.select('text')
+                .style('fill-opacity', 1);
+            
+            // Remove exiting nodes
+            const nodeExit = node.exit().transition()
+                .duration(750)
+                .attr('transform', d => `translate(${source.y},${source.x})`)
+                .remove();
+            
+            nodeExit.select('circle')
+                .attr('r', 1e-6);
+            
+            nodeExit.select('text')
+                .style('fill-opacity', 1e-6);
+            
+            // Update links
+            const link = svg.selectAll('path.link')
+                .data(links, d => d.target.id);
+            
+            // Enter new links
+            const linkEnter = link.enter().insert('path', 'g')
+                .attr('class', 'link')
+                .attr('d', d => {
+                    const o = {x: source.x0, y: source.y0};
+                    return diagonal(o, o);
+                });
+            
+            // Update
+            const linkUpdate = linkEnter.merge(link);
+            
+            linkUpdate.transition()
+                .duration(750)
+                .attr('d', d => diagonal(d.source, d.target));
+            
+            // Remove exiting links
+            link.exit().transition()
+                .duration(750)
+                .attr('d', d => {
+                    const o = {x: source.x, y: source.y};
+                    return diagonal(o, o);
+                })
+                .remove();
+            
+            // Store old positions
+            nodes.forEach(d => {
+                d.x0 = d.x;
+                d.y0 = d.y;
+            });
+        }
+        
+        // Diagonal link generator
+        function diagonal(s, d) {
+            return `M ${s.y} ${s.x}
+                    C ${(s.y + d.y) / 2} ${s.x},
+                      ${(s.y + d.y) / 2} ${d.x},
+                      ${d.y} ${d.x}`;
+        }
+        
+        // Toggle children on click
+        function click(event, d) {
+            if (d.children) {
+                d._children = d.children;
+                d.children = null;
+            } else {
+                d.children = d._children;
+                d._children = null;
+            }
+            update(d);
+            showDetails(d);
+            highlightPath(d);
+        }
+        
+        // Collapse node
+        function collapse(d) {
+            if (d.children) {
+                d._children = d.children;
+                d._children.forEach(collapse);
+                d.children = null;
+            }
+        }
+        
+        // Show tooltip
+        function showTooltip(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            tooltip.html(`
+                <strong>${d.data.id}</strong><br/>
+                ${d.data.name}<br/>
+                Level: ${d.data.level}<br/>
+                Confidence: ${d.data.confidence}%<br/>
+                Path Confidence: ${d.data.confidence_path.toFixed(2)}%
+            `)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 28) + 'px');
+        }
+        
+        // Hide tooltip
+        function hideTooltip() {
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        }
+        
+        // Show details in sidebar
+        function showDetails(d) {
+            const panel = document.getElementById('info-panel');
+            
+            // Get all dependencies
+            const deps = [];
+            const collectDeps = (node) => {
+                if (node.children) {
+                    node.children.forEach(child => {
+                        deps.push(child.data.id);
+                        collectDeps(child);
+                    });
+                }
+                if (node._children) {
+                    node._children.forEach(child => {
+                        deps.push(child.data.id);
+                        collectDeps(child);
+                    });
+                }
+            };
+            collectDeps(d);
+            
+            panel.innerHTML = `
+                <h3>${d.data.id}</h3>
+                <p><strong>Description:</strong> ${d.data.name}</p>
+                <p><strong>Category:</strong> ${d.data.category}</p>
+                <p><strong>Level:</strong> ${d.data.level}</p>
+                <p><strong>Confidence:</strong> ${d.data.confidence}%</p>
+                <p><strong>Path Confidence:</strong> ${d.data.confidence_path.toFixed(4)}%</p>
+                
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: ${d.data.confidence}%"></div>
+                </div>
+                
+                <p><strong>Direct Dependencies:</strong> ${d.children ? d.children.length : 0}</p>
+                <p><strong>Total Dependencies:</strong> ${deps.length}</p>
+                
+                ${deps.length > 0 ? `
+                    <p><strong>Depends on:</strong></p>
+                    <ul style="max-height: 200px; overflow-y: auto;">
+                        ${deps.slice(0, 10).map(dep => `<li>${dep}</li>`).join('')}
+                        ${deps.length > 10 ? `<li>... and ${deps.length - 10} more</li>` : ''}
+                    </ul>
+                ` : '<p><em>No dependencies (axiom)</em></p>'}
+            `;
+        }
+        
+        // Highlight path to root
+        function highlightPath(d) {
+            // Clear previous highlights
+            svg.selectAll('.link').classed('path-highlight', false);
+            svg.selectAll('circle').classed('node-highlight', false);
+            
+            // Highlight path
+            let current = d;
+            while (current.parent) {
+                svg.selectAll('.link')
+                    .filter(link => link.target === current)
+                    .classed('path-highlight', true);
+                
+                svg.selectAll('circle')
+                    .filter(node => node === current)
+                    .classed('node-highlight', true);
+                
+                current = current.parent;
+            }
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const countNodes = (node) => {
+                let count = 1;
+                if (node.children) {
+                    node.children.forEach(child => count += countNodes(child));
+                }
+                if (node._children) {
+                    node._children.forEach(child => count += countNodes(child));
+                }
+                return count;
+            };
+            
+            const maxDepth = (node) => {
+                if (!node.children && !node._children) return 0;
+                const children = node.children || node._children;
+                return 1 + Math.max(...children.map(child => maxDepth(child)));
+            };
+            
+            const countAxioms = (node) => {
+                let count = node.data.category === 'axiom' ? 1 : 0;
+                if (node.children) {
+                    node.children.forEach(child => count += countAxioms(child));
+                }
+                if (node._children) {
+                    node._children.forEach(child => count += countAxioms(child));
+                }
+                return count;
+            };
+            
+            document.getElementById('total-truths').textContent = countNodes(root);
+            document.getElementById('tree-depth').textContent = maxDepth(root);
+            document.getElementById('axiom-count').textContent = countAxioms(root);
+            document.getElementById('master-confidence').textContent = 
+                root.data.confidence_path.toFixed(4) + '%';
+        }
+        
+        // Control functions
+        let i = 0;
+        
+        function expandAll() {
+            function expand(d) {
+                if (d._children) {
+                    d.children = d._children;
+                    d._children = null;
+                }
+                if (d.children) {
+                    d.children.forEach(expand);
+                }
+            }
+            root.children.forEach(expand);
+            update(root);
+        }
+        
+        function collapseAll() {
+            root.children.forEach(collapse);
+            update(root);
+        }
+        
+        function showAxiomPaths() {
+            // Expand to show all axiom paths
+            function expandToAxioms(d) {
+                if (d.data.category === 'axiom') {
+                    // Expand all ancestors
+                    let current = d;
+                    while (current.parent) {
+                        const parent = current.parent;
+                        if (parent._children && parent._children.includes(current)) {
+                            parent.children = parent._children;
+                            parent._children = null;
+                        }
+                        current = parent;
+                    }
+                }
+                if (d.children) {
+                    d.children.forEach(expandToAxioms);
+                }
+                if (d._children) {
+                    d._children.forEach(expandToAxioms);
+                }
+            }
+            
+            expandToAxioms(root);
+            update(root);
+            
+            // Highlight all axiom paths
+            svg.selectAll('circle')
+                .filter(d => d.data.category === 'axiom')
+                .classed('node-highlight', true);
+        }
+        
+        function resetView() {
+            // Clear highlights
+            svg.selectAll('.link').classed('path-highlight', false);
+            svg.selectAll('circle').classed('node-highlight', false);
+            
+            // Reset zoom
+            svg.transition()
+                .duration(750)
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+        }
+        
+        // Add zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 3])
+            .on('zoom', (event) => {
+                svg.attr('transform', event.transform);
+            });
+        
+        d3.select('#tree').call(zoom);
+    </script>
+</body>
+</html>

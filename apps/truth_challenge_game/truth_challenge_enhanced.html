@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>This is TRUE - CHANGE MY MIND</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 2px solid #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 0 0 20px #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .master-truth {
+            font-size: 1.5em;
+            color: #ffff00;
+            margin-top: 10px;
+        }
+
+        .confidence-meter {
+            margin: 20px auto;
+            width: 80%;
+            height: 40px;
+            background: #333;
+            border: 2px solid #00ff00;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00);
+            transition: width 0.5s ease;
+            border-radius: 18px;
+        }
+
+        .confidence-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-shadow: 0 0 2px white;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tree-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            border-right: 2px solid #00ff00;
+        }
+
+        .info-panel {
+            width: 400px;
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.05);
+            overflow-y: auto;
+        }
+
+        .level-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px dashed #00ff00;
+            opacity: 0.3;
+            transition: all 0.5s;
+            border-radius: 10px;
+        }
+
+        .level-section.active {
+            opacity: 1;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .level-section.completed {
+            opacity: 0.7;
+            border-color: #008800;
+            background: rgba(0, 136, 0, 0.1);
+        }
+
+        .level-header {
+            font-size: 1.4em;
+            color: #00ffff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .truth-node {
+            background: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .truth-node::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0,255,0,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .truth-node:hover::before {
+            opacity: 1;
+        }
+
+        .truth-node:hover {
+            transform: translateX(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        .truth-node.agreed {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.2);
+        }
+
+        .truth-node.disputed {
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.2);
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .node-id {
+            color: #ffff00;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .node-statement {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .node-confidence {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .node-dependencies {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #0088ff;
+        }
+
+        .node-actions {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .truth-node.active .node-actions {
+            display: block;
+        }
+
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .btn:hover {
+            background: #00cc00;
+            box-shadow: 0 0 15px #00ff00;
+            transform: scale(1.05);
+        }
+
+        .btn.disagree {
+            background: #ff0000;
+            color: #fff;
+        }
+
+        .btn.disagree:hover {
+            background: #cc0000;
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .debate-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #222;
+            border: 2px solid #666;
+            border-radius: 10px;
+        }
+
+        .debate-input {
+            width: 100%;
+            background: #333;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 15px;
+            font-family: inherit;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-size: 1.1em;
+            min-height: 100px;
+        }
+
+        .claude-response {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 100, 255, 0.1);
+            border-left: 4px solid #0064ff;
+            border-radius: 5px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-panel h3 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .stats {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            color: #888;
+        }
+
+        .stat-value {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            border: 3px solid #00ff00;
+            padding: 40px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 0 50px rgba(0, 255, 0, 0.8);
+            border-radius: 20px;
+            animation: zoomIn 0.5s;
+        }
+
+        @keyframes zoomIn {
+            from { transform: translate(-50%, -50%) scale(0); }
+            to { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .game-over h2 {
+            color: #00ff00;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #00ff00;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 999;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00cc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>This is TRUE - CHANGE MY MIND</h1>
+        <div class="master-truth">MASTER TRUTH: Circular Recursion Works</div>
+        <div class="confidence-meter">
+            <div class="confidence-bar" style="width: 99%"></div>
+            <div class="confidence-text">99% Confidence</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="tree-container" id="tree-container">
+            <div id="game-content"></div>
+        </div>
+
+        <div class="info-panel">
+            <h3>Game Status</h3>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Current Level:</span>
+                    <span class="stat-value" id="current-level">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Truths Agreed:</span>
+                    <span class="stat-value" id="truths-agreed">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Truths Disputed:</span>
+                    <span class="stat-value" id="truths-disputed">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Nodes:</span>
+                    <span class="stat-value" id="total-nodes">0</span>
+                </div>
+            </div>
+
+            <h3>Current Selection</h3>
+            <div id="selection-info" style="background: #1a1a1a; padding: 15px; border-radius: 10px;">
+                <p style="color: #888;">Click on a truth node to see details</p>
+            </div>
+
+            <h3>Strategy Tips</h3>
+            <ul style="color: #888; line-height: 1.8;">
+                <li>Attack foundational truths for maximum impact</li>
+                <li>Each dispute reduces confidence by 5%</li>
+                <li>Question the 121-bit soundness limit</li>
+                <li>Challenge polynomial irreducibility</li>
+                <li>Win by reducing confidence below 50%</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="game-over" id="game-over">
+        <h2 id="game-result"></h2>
+        <p id="game-summary" style="font-size: 1.2em; margin: 20px 0;"></p>
+        <button class="btn" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        // Enhanced truth dependency tree with more nodes
+        const truthTree = {
+            MASTER: {
+                id: "MASTER",
+                statement: "Circular Recursion Works with 99% Confidence",
+                confidence: 99,
+                depends: ["T803", "T604", "T605"],
+                level: 6,
+                description: "The ultimate claim that self-referential proof verification is mathematically sound"
+            },
+            T803: {
+                id: "T803",
+                statement: "Circular recursion is provably sound",
+                confidence: 99.2,
+                depends: ["T604", "T602"],
+                level: 5,
+                description: "Mathematical proof that self-verification doesn't create paradoxes"
+            },
+            T604: {
+                id: "T604",
+                statement: "Soundness is preserved through recursive composition",
+                confidence: 99.6,
+                depends: ["T504", "T503"],
+                level: 4,
+                description: "Each recursion level maintains the security guarantee"
+            },
+            T605: {
+                id: "T605",
+                statement: "Fixed point exists for self-verification",
+                confidence: 99.5,
+                depends: ["T602", "T601"],
+                level: 4,
+                description: "Brouwer's theorem guarantees convergence"
+            },
+            T602: {
+                id: "T602",
+                statement: "Verifier circuit has ~30M gates",
+                confidence: 99.8,
+                depends: ["T600", "T601"],
+                level: 3,
+                description: "Empirically measured circuit complexity"
+            },
+            T601: {
+                id: "T601",
+                statement: "Verifier can be expressed as arithmetic circuit",
+                confidence: 99.8,
+                depends: ["T202", "T300"],
+                level: 3,
+                description: "All verification steps are polynomial operations"
+            },
+            T504: {
+                id: "T504",
+                statement: "Soundness error bounded by 2^{-121}",
+                confidence: 99.5,
+                depends: ["T503", "T502"],
+                level: 3,
+                description: "Proven via Schwartz-Zippel lemma"
+            },
+            T503: {
+                id: "T503",
+                statement: "Zero-sum polynomial characterizes circuit validity",
+                confidence: 99.5,
+                depends: ["T203", "T502"],
+                level: 2,
+                description: "Valid computation iff constraint polynomial sums to zero"
+            },
+            T502: {
+                id: "T502",
+                statement: "Random queries achieve negligible error",
+                confidence: 99.7,
+                depends: ["T203"],
+                level: 2,
+                description: "320 random queries give 2^-133 false positive rate"
+            },
+            T600: {
+                id: "T600",
+                statement: "SHA3-256 circuit uses exactly 24,576 gates",
+                confidence: 99.4,
+                depends: ["T400", "T300"],
+                level: 2,
+                description: "Keccak-f[1600] with 24 rounds"
+            },
+            T400: {
+                id: "T400",
+                statement: "All XOR gates in SHA3 are fully constrained",
+                confidence: 99.6,
+                depends: ["T200", "T300"],
+                level: 2,
+                description: "Each gate enforces L ⊕ R = O in field arithmetic"
+            },
+            T300: {
+                id: "T300",
+                statement: "Keccak-f is a mathematical permutation",
+                confidence: 99.7,
+                depends: ["T202"],
+                level: 2,
+                description: "Bijective function on 1600-bit state"
+            },
+            T203: {
+                id: "T203",
+                statement: "Constraint polynomial F(L,R,O,S) captures both gate types",
+                confidence: 99.8,
+                depends: ["T200", "T201"],
+                level: 2,
+                description: "S·(L·R - O) + (1-S)·(L + R - O) = 0"
+            },
+            T202: {
+                id: "T202",
+                statement: "{AND, XOR} gates form universal set",
+                confidence: 99.8,
+                depends: ["T104"],
+                level: 2,
+                description: "Can compute any Boolean function"
+            },
+            T200: {
+                id: "T200",
+                statement: "XOR gate constraint L + R = O is complete",
+                confidence: 99.8,
+                depends: ["T100"],
+                level: 1,
+                description: "In GF(2^128), addition is XOR"
+            },
+            T201: {
+                id: "T201",
+                statement: "AND gate constraint L · R = O is complete",
+                confidence: 99.8,
+                depends: ["T103"],
+                level: 1,
+                description: "Field multiplication captures AND logic"
+            },
+            T104: {
+                id: "T104",
+                statement: "All Boolean functions expressible with AND, XOR, NOT",
+                confidence: 99.9,
+                depends: ["A004"],
+                level: 1,
+                description: "Functional completeness theorem"
+            },
+            T103: {
+                id: "T103",
+                statement: "GF(2^128) has proper field structure",
+                confidence: 99.9,
+                depends: ["T102"],
+                level: 1,
+                description: "Closure, associativity, distributivity hold"
+            },
+            T102: {
+                id: "T102",
+                statement: "p(x) = x^128 + x^7 + x^2 + x + 1 is irreducible",
+                confidence: 99.9,
+                depends: ["T101"],
+                level: 1,
+                description: "No factors exist over GF(2)"
+            },
+            T101: {
+                id: "T101",
+                statement: "F[x] forms a polynomial ring",
+                confidence: 99.9,
+                depends: ["A002", "A003"],
+                level: 1,
+                description: "Polynomials with field coefficients"
+            },
+            T100: {
+                id: "T100",
+                statement: "In GF(2), addition equals XOR",
+                confidence: 99.9,
+                depends: ["A003"],
+                level: 1,
+                description: "0+0=0, 0+1=1, 1+0=1, 1+1=0"
+            },
+            A004: {
+                id: "A004",
+                statement: "Boolean algebra axioms hold",
+                confidence: 100,
+                depends: [],
+                level: 0,
+                description: "Commutativity, associativity, distributivity, etc."
+            },
+            A003: {
+                id: "A003",
+                statement: "GF(2) field axioms are true",
+                confidence: 100,
+                depends: [],
+                level: 0,
+                description: "Two elements {0,1} with modulo-2 arithmetic"
+            },
+            A002: {
+                id: "A002",
+                statement: "ZFC set theory is consistent",
+                confidence: 100,
+                depends: [],
+                level: 0,
+                description: "Foundation of modern mathematics"
+            }
+        };
+
+        // Enhanced Claude responses
+        const claudeResponses = {
+            axioms: {
+                "not true": "These are mathematical axioms - they are true by definition. If you reject these, you're rejecting the foundation of mathematics itself. Would you like me to explain why these specific axioms were chosen?",
+                "don't understand": "Let me explain: These axioms define the basic rules. For example, in GF(2), 1+1=0 because we're working modulo 2. This is how XOR works in computers - it's the foundation of binary arithmetic!",
+                "seems wrong": "I understand it might seem counterintuitive, but these are the agreed-upon foundations of mathematics. Without them, we can't build any mathematical system. They've been tested and verified for centuries.",
+                "circular": "You're right to notice that axioms are 'assumed' - but that's their purpose. Every logical system needs a starting point. These have been tested for consistency through decades of mathematical research.",
+                "zfc": "ZFC consistency is indeed unprovable within ZFC itself (Gödel's theorem). But we use it because no contradiction has been found despite extensive searching, and it provides a solid foundation for mathematics."
+            },
+            fieldTheory: {
+                "irreducible": "The irreducibility of p(x) = x^128 + x^7 + x^2 + x + 1 has been exhaustively verified. We checked all possible factors up to degree 64. It's a mathematical fact that this polynomial cannot be factored over GF(2).",
+                "xor": "In GF(2), addition IS XOR by definition: 0+0=0 (0 XOR 0 = 0), 0+1=1 (0 XOR 1 = 1), 1+0=1 (1 XOR 0 = 1), 1+1=0 (1 XOR 1 = 0). This is why binary computers use XOR for addition!",
+                "polynomial": "A polynomial ring is just the set of all polynomials with coefficients from our field. It's like how integers form a ring under + and ×. This structure allows us to do polynomial arithmetic.",
+                "degree": "You might wonder why degree 128? It's a power of 2, which makes binary operations efficient, and 128 bits provides sufficient security against birthday attacks while being implementable in modern CPUs."
+            },
+            gates: {
+                "universal": "We can prove {AND, XOR} is universal by showing we can build NOT: NOT(x) = XOR(x,1). With AND and NOT, we get NAND. NAND is universal, so our set is too. Want me to show how to build OR?",
+                "constraint": "The constraint F(L,R,O,S) = 0 uniquely determines the output. When S=1, we get L·R=O (AND gate). When S=0, we get L+R=O (XOR gate). There's no freedom - given inputs, only one output satisfies.",
+                "complete": "Complete means the constraint fully specifies the gate behavior. No valid witness can violate these constraints. If you try to cheat and set O to the wrong value, the constraint polynomial becomes non-zero.",
+                "field": "Why use field arithmetic instead of Boolean? Because it allows us to use powerful algebraic techniques like polynomial interpolation and the Schwartz-Zippel lemma for probabilistic verification."
+            },
+            security: {
+                "soundness": "The 2^{-121} bound comes from: Sumcheck contributes at most 18d/|F| ≈ 2^{-123} error (18 rounds, degree d). Query soundness adds 2^{-133} from 320 random queries. Union bound gives total error.",
+                "false witness": "A false witness would need to satisfy all constraints while computing incorrectly. But our constraints force correct computation - there's no 'room' to cheat. The math literally prevents lying.",
+                "circular": "Circular recursion works because we're proving a TRUE statement: 'this proof verifies correctly'. It's like a compiler that can compile itself - no paradox, just self-reference with sound logic.",
+                "birthday": "Good question! The birthday bound for finding collisions in 128-bit space is 2^64. But we're not looking for collisions - we're doing field arithmetic where 2^128 is the full space.",
+                "not 128": "You're absolutely right! It's 121 bits, not 128. The sumcheck protocol in GF(2^128) loses about 7 bits of security due to the union bound over multiple rounds. This is a known, accepted limitation."
+            },
+            implementation: {
+                "gate count": "The 24,576 gates for SHA3-256 is empirically verified. We generate the circuit and count. It matches the theoretical expectation: 24 rounds × ~1000 gates per round for the Keccak-f permutation.",
+                "30 million": "The ~30M gate verifier includes: SHA3 for Merkle trees (24K gates × ~1000 instances), sumcheck verification, polynomial evaluation, and field arithmetic. It's large but feasible.",
+                "optimization": "Could we optimize to fewer gates? Possibly, but that would make the circuit less regular and harder to verify. The current design prioritizes verifiability over minimal gate count.",
+                "memory": "30M gates × 16 bytes per gate ≈ 480MB memory. Modern computers handle this easily. The real bottleneck is computation time, not memory."
+            }
+        };
+
+        let gameState = {
+            currentLevel: 0,
+            verifiedNodes: new Set(),
+            disputedNodes: new Set(),
+            confidence: 99,
+            active: true,
+            selectedNode: null,
+            totalNodes: Object.keys(truthTree).length
+        };
+
+        function initGame() {
+            displayLevel(0);
+            updateStats();
+            updateInfoPanel();
+        }
+
+        function displayLevel(level) {
+            const container = document.getElementById('game-content');
+            const nodes = Object.values(truthTree).filter(n => n.level === level);
+            
+            if (nodes.length === 0) {
+                if (level > 6) {
+                    endGame(true);
+                    return;
+                }
+                // Try next level
+                gameState.currentLevel++;
+                displayLevel(gameState.currentLevel);
+                return;
+            }
+
+            const levelDiv = document.createElement('div');
+            levelDiv.className = 'level-section active';
+            levelDiv.innerHTML = `<div class="level-header">Level ${level}: ${getLevelName(level)}</div>`;
+
+            nodes.forEach(node => {
+                const nodeDiv = createNodeElement(node);
+                levelDiv.appendChild(nodeDiv);
+            });
+
+            container.appendChild(levelDiv);
+            
+            // Auto-scroll to new level
+            setTimeout(() => {
+                levelDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+
+        function getLevelName(level) {
+            const names = [
+                "Mathematical Axioms",
+                "Field Theory Foundations",
+                "Cryptographic Primitives",
+                "Protocol Properties",
+                "Composition Theorems",
+                "Recursive Constructions",
+                "Master Proof"
+            ];
+            return names[level] || `Level ${level}`;
+        }
+
+        function createNodeElement(node) {
+            const div = document.createElement('div');
+            div.className = 'truth-node';
+            div.id = `node-${node.id}`;
+            
+            const dependsText = node.depends.length > 0 
+                ? `Depends on: ${node.depends.join(', ')}` 
+                : 'Fundamental Axiom';
+            
+            div.innerHTML = `
+                <div class="node-id">${node.id}</div>
+                <div class="node-statement">${node.statement}</div>
+                <div class="node-confidence">Confidence: ${node.confidence}%</div>
+                <div class="node-dependencies">${dependsText}</div>
+                <div class="node-actions">
+                    <button class="btn" onclick="agreeWithNode('${node.id}')">I Agree</button>
+                    <button class="btn disagree" onclick="disagreeWithNode('${node.id}')">I Disagree</button>
+                </div>
+                <div class="debate-section" id="debate-${node.id}">
+                    <textarea class="debate-input" id="input-${node.id}" 
+                        placeholder="Explain why you disagree..."></textarea>
+                    <button class="btn" onclick="submitArgument('${node.id}')">Submit Argument</button>
+                    <div id="response-${node.id}"></div>
+                </div>
+            `;
+            
+            div.onclick = function(e) {
+                if (!gameState.active) return;
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'TEXTAREA') return;
+                
+                document.querySelectorAll('.truth-node').forEach(n => n.classList.remove('active'));
+                div.classList.add('active');
+                gameState.selectedNode = node;
+                updateInfoPanel();
+            };
+            
+            return div;
+        }
+
+        function updateInfoPanel() {
+            const infoDiv = document.getElementById('selection-info');
+            if (!gameState.selectedNode) {
+                infoDiv.innerHTML = '<p style="color: #888;">Click on a truth node to see details</p>';
+                return;
+            }
+            
+            const node = gameState.selectedNode;
+            infoDiv.innerHTML = `
+                <h4 style="color: #ffff00; margin-bottom: 10px;">${node.id}</h4>
+                <p style="margin-bottom: 10px;">${node.description}</p>
+                <div style="color: #0088ff; font-size: 0.9em;">
+                    ${node.depends.length > 0 
+                        ? `This truth depends on: ${node.depends.map(d => `<br>• ${d}: ${truthTree[d].statement}`).join('')}`
+                        : 'This is a fundamental axiom (no dependencies)'}
+                </div>
+            `;
+        }
+
+        function agreeWithNode(nodeId) {
+            if (!gameState.active) return;
+            
+            gameState.verifiedNodes.add(nodeId);
+            document.getElementById(`node-${nodeId}`).classList.add('agreed');
+            
+            checkLevelComplete();
+            updateStats();
+        }
+
+        function disagreeWithNode(nodeId) {
+            if (!gameState.active) return;
+            
+            document.getElementById(`debate-${nodeId}`).style.display = 'block';
+            document.getElementById(`input-${nodeId}`).focus();
+        }
+
+        function submitArgument(nodeId) {
+            const input = document.getElementById(`input-${nodeId}`).value;
+            if (!input.trim()) return;
+            
+            const node = truthTree[nodeId];
+            const response = generateClaudeResponse(node, input);
+            
+            const responseDiv = document.getElementById(`response-${nodeId}`);
+            responseDiv.innerHTML = `
+                <div class="claude-response">
+                    <strong style="color: #0088ff;">Claude:</strong> ${response}
+                    <div style="margin-top: 15px;">
+                        <button class="btn" onclick="concedePoint('${nodeId}')">You're Right, I Agree</button>
+                        <button class="btn disagree" onclick="maintainDispute('${nodeId}')">I Still Disagree</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateClaudeResponse(node, argument) {
+            const lowerArg = argument.toLowerCase();
+            
+            // Check for common objection patterns
+            if (node.level === 0) { // Axioms
+                if (lowerArg.includes("zfc") || lowerArg.includes("consistent")) {
+                    return claudeResponses.axioms["zfc"];
+                } else if (lowerArg.includes("not true") || lowerArg.includes("false")) {
+                    return claudeResponses.axioms["not true"];
+                } else if (lowerArg.includes("understand")) {
+                    return claudeResponses.axioms["don't understand"];
+                } else if (lowerArg.includes("circular")) {
+                    return claudeResponses.axioms["circular"];
+                } else {
+                    return claudeResponses.axioms["seems wrong"];
+                }
+            }
+            
+            // Field theory objections
+            if (node.id.startsWith("T10")) {
+                if (lowerArg.includes("xor")) {
+                    return claudeResponses.fieldTheory["xor"];
+                } else if (lowerArg.includes("irreducible")) {
+                    return claudeResponses.fieldTheory["irreducible"];
+                } else if (lowerArg.includes("degree") || lowerArg.includes("128")) {
+                    return claudeResponses.fieldTheory["degree"];
+                } else {
+                    return claudeResponses.fieldTheory["polynomial"];
+                }
+            }
+            
+            // Gate objections
+            if (node.id.startsWith("T20") || node.id.startsWith("T40")) {
+                if (lowerArg.includes("universal")) {
+                    return claudeResponses.gates["universal"];
+                } else if (lowerArg.includes("complete")) {
+                    return claudeResponses.gates["complete"];
+                } else if (lowerArg.includes("field") || lowerArg.includes("arithmetic")) {
+                    return claudeResponses.gates["field"];
+                } else {
+                    return claudeResponses.gates["constraint"];
+                }
+            }
+            
+            // Security objections
+            if (lowerArg.includes("121") || lowerArg.includes("128")) {
+                return claudeResponses.security["not 128"];
+            }
+            if (lowerArg.includes("birthday")) {
+                return claudeResponses.security["birthday"];
+            }
+            if (lowerArg.includes("circular") || lowerArg.includes("recursion")) {
+                return claudeResponses.security["circular"];
+            }
+            if (lowerArg.includes("soundness")) {
+                return claudeResponses.security["soundness"];
+            }
+            if (lowerArg.includes("false") || lowerArg.includes("witness")) {
+                return claudeResponses.security["false witness"];
+            }
+            
+            // Implementation objections
+            if (node.id === "T600" || lowerArg.includes("gates") || lowerArg.includes("count")) {
+                return claudeResponses.implementation["gate count"];
+            }
+            if (lowerArg.includes("million") || lowerArg.includes("30m")) {
+                return claudeResponses.implementation["30 million"];
+            }
+            if (lowerArg.includes("optimize") || lowerArg.includes("fewer")) {
+                return claudeResponses.implementation["optimization"];
+            }
+            if (lowerArg.includes("memory")) {
+                return claudeResponses.implementation["memory"];
+            }
+            
+            // Generic response
+            return `That's an interesting point about "${argument.substring(0, 50)}${argument.length > 50 ? '...' : ''}". 
+                    However, this truth has been verified through formal mathematical proof with ${node.confidence}% confidence. 
+                    The dependencies ${node.depends.join(', ')} support this conclusion through rigorous logical deduction. 
+                    Can you point to a specific mathematical flaw in the reasoning?`;
+        }
+
+        function concedePoint(nodeId) {
+            agreeWithNode(nodeId);
+            document.getElementById(`debate-${nodeId}`).style.display = 'none';
+        }
+
+        function maintainDispute(nodeId) {
+            gameState.disputedNodes.add(nodeId);
+            document.getElementById(`node-${nodeId}`).classList.add('disputed');
+            
+            // Reduce confidence
+            gameState.confidence -= 5;
+            updateConfidence();
+            
+            if (gameState.confidence < 50) {
+                endGame(false);
+                return;
+            }
+            
+            checkLevelComplete();
+            updateStats();
+        }
+
+        function checkLevelComplete() {
+            const currentNodes = Object.values(truthTree).filter(n => n.level === gameState.currentLevel);
+            const allProcessed = currentNodes.every(n => 
+                gameState.verifiedNodes.has(n.id) || gameState.disputedNodes.has(n.id)
+            );
+            
+            if (allProcessed) {
+                // Mark current level as completed
+                const activeSections = document.querySelectorAll('.level-section.active');
+                activeSections.forEach(section => {
+                    section.classList.remove('active');
+                    section.classList.add('completed');
+                });
+                
+                gameState.currentLevel++;
+                document.getElementById('current-level').textContent = gameState.currentLevel;
+                
+                if (gameState.currentLevel <= 6) {
+                    setTimeout(() => displayLevel(gameState.currentLevel), 500);
+                } else {
+                    endGame(true);
+                }
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('current-level').textContent = gameState.currentLevel;
+            document.getElementById('truths-agreed').textContent = gameState.verifiedNodes.size;
+            document.getElementById('truths-disputed').textContent = gameState.disputedNodes.size;
+            document.getElementById('total-nodes').textContent = gameState.totalNodes;
+        }
+
+        function updateConfidence() {
+            document.querySelector('.confidence-bar').style.width = `${gameState.confidence}%`;
+            document.querySelector('.confidence-text').textContent = `${gameState.confidence}% Confidence`;
+            
+            // Change color based on confidence
+            const bar = document.querySelector('.confidence-bar');
+            if (gameState.confidence < 60) {
+                bar.style.background = 'linear-gradient(90deg, #ff0000, #ff6600)';
+            } else if (gameState.confidence < 80) {
+                bar.style.background = 'linear-gradient(90deg, #ff6600, #ffff00)';
+            }
+        }
+
+        function endGame(won) {
+            gameState.active = false;
+            const overlay = document.getElementById('overlay');
+            const gameOverDiv = document.getElementById('game-over');
+            const resultDiv = document.getElementById('game-result');
+            const summaryDiv = document.getElementById('game-summary');
+            
+            overlay.style.display = 'block';
+            
+            if (won && gameState.disputedNodes.size === 0) {
+                resultDiv.textContent = "TRUTH VERIFIED!";
+                resultDiv.style.color = "#00ff00";
+                summaryDiv.textContent = "You agreed with all truths. Circular recursion is mathematically sound!";
+            } else if (won && gameState.disputedNodes.size > 0) {
+                resultDiv.textContent = "TRUTH STANDS!";
+                resultDiv.style.color = "#ffff00";
+                summaryDiv.textContent = `Despite ${gameState.disputedNodes.size} objections, the mathematical foundation remains sound with ${gameState.confidence}% confidence.`;
+            } else {
+                resultDiv.textContent = "TRUTH CHALLENGED!";
+                resultDiv.style.color = "#ff0000";
+                summaryDiv.textContent = "Your objections have reduced confidence below 50%. Perhaps there are flaws in the mathematical foundation...";
+            }
+            
+            gameOverDiv.style.display = 'block';
+        }
+
+        function resetGame() {
+            gameState = {
+                currentLevel: 0,
+                verifiedNodes: new Set(),
+                disputedNodes: new Set(),
+                confidence: 99,
+                active: true,
+                selectedNode: null,
+                totalNodes: Object.keys(truthTree).length
+            };
+            
+            document.getElementById('game-content').innerHTML = '';
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('game-over').style.display = 'none';
+            updateConfidence();
+            updateStats();
+            updateInfoPanel();
+            initGame();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (gameState.selectedNode) {
+                    document.querySelectorAll('.truth-node').forEach(n => n.classList.remove('active'));
+                    gameState.selectedNode = null;
+                    updateInfoPanel();
+                }
+            }
+        });
+
+        // Start the game
+        window.onload = initGame;
+    </script>
+</body>
+</html>

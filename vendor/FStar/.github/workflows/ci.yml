@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+    - _**
+  pull_request:
+  workflow_dispatch:
+  merge_group:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: build
+    uses: ./.github/workflows/build-ci.yml
+
+  tests:
+    name: tests
+    needs: build
+    uses: ./.github/workflows/tests.yml
+
+  # Disabled as it takes too long without the magic nix cache.
+  # nix-build:
+  #   name: nix
+  #   uses: ./.github/workflows/nix.yml
+
+  # Branch protection points here
+  ciok:
+    runs-on: ubuntu-latest
+    if: ${{ cancelled() || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure') }}
+    # ^ Workaround for insane github behavior: https://github.com/actions/runner/issues/2566
+    needs:
+      - build
+      - tests
+      # - nix-build
+    steps:
+      # Note: we only run on failure. Otherwise this is skipped, which counts
+      # as a success.
+      - run: exit 1

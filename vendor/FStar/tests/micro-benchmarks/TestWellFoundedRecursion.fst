@@ -1,0 +1,294 @@
+module TestWellFoundedRecursion
+
+noeq
+type ord =
+  | Z : ord
+  | Succ : ord -> ord
+  | Lim : (nat -> ord) -> ord
+
+let rec sum (x:ord) (y:ord) =
+  match x with
+  | Z -> y
+  | Succ x -> Succ (sum x y)
+  | Lim f -> Lim (fun n -> sum (f n) y)
+
+noeq
+type t =
+  | T0 : bool -> t
+  | T : (nat -> s) -> t
+and s =
+  | S0 : bool -> s
+  | S : (nat -> t) -> s
+
+let rec neg_t (x:t) =
+  match x with
+  | T0 b -> T0 (not b)
+  | T f -> T (fun y -> neg_s (f y))
+
+and neg_s (x:s) =
+  match x with
+  | S0 b -> S0 (not b)
+  | S f -> S (fun y -> neg_t (f y))
+
+
+noeq
+type tree a =
+  | Leaf : data:a -> tree a
+  | Node : children:(nat -> tree a) -> tree a
+
+let rec map #a #b (f:a -> b) (x:tree a)
+  : Tot (tree b)
+  = match x with
+    | Leaf data -> Leaf (f data)
+    | Node ch -> Node (fun n -> map f (ch n))
+
+let codomain_ordering (#a:Type) (x:tree a{Node? x})
+  : Lemma (forall n. Node?.children x n << x)
+  = ()
+
+let test (#a:Type) (g:nat -> tree a) (n:nat)
+  : Lemma (g n << Node g)
+  = //`g n << Node g` is not automatically provable in the SMT encoding
+    //due to the way the triggers are set up
+    //But, with a call to the lemma above, it is provable
+    codomain_ordering (Node g)
+
+//An unusual style
+let rec map_alt (#a:Type0) (#b:Type0) (f:a -> b) (x:tree a)
+  : Tot (tree b)
+        (decreases %[x;1])
+  = match x with
+    | Leaf data -> Leaf (f data)
+    | Node ch -> Node (map_alt' #a #b f ch)
+and map_alt' (#a:Type0) (#b:Type0) (f:a -> b) (g: (nat -> tree a))
+  : Tot (nat -> tree b)
+        (decreases %[Node g; 0])
+  = fun n -> codomain_ordering (Node g);  //sadly, seems to require a call to the lemma
+          map_alt f (g n)
+
+
+noeq
+type stream' (a:Type) =
+  | SNil': stream' a
+  | SCons': a & (unit -> stream' a) -> stream' a
+
+//we do not generate well-foundedness axioms for function within
+//other inductives, i.e., we don't destruct the pair above
+[@@expect_failure [19]]
+let rec fmap_stream' (#a #b:Type) (f:a -> b) (x:stream' a) : stream' b =
+  match x with
+  | SNil' -> SNil'
+  | SCons' (h, t) ->
+    let ft () = fmap_stream' f (t ()) in
+    SCons' (f h, ft)
+
+//You have to write it this way
+noeq
+type stream (a:Type) =
+  | SNil: stream a
+  | SCons: _:a -> f:(unit -> stream a) -> stream a
+
+let rec fmap_stream (#a #b:Type) (f:a -> b) (x:stream a) : stream b =
+  match x with
+  | SNil -> SNil
+  | SCons h t ->
+    let ft () = fmap_stream f (t ()) in
+    SCons (f h) ft
+
+noeq
+type test1 (a:Type) =
+  | Test1: f:(nat -> a) -> test1 a
+
+noeq
+type test2 (a:Type) =
+  | Test2: g:test1 (test2 a) -> test2 a
+
+[@@expect_failure [19]] //we don't generate an axiom for Test1.f, and neither for the instantiation 
+let wf_test1 (#a:_) (x:test1 a) (y:nat)
+  : Lemma (Test1?.f x y << x)
+  = ()
+
+[@@expect_failure]
+let rec map_test2 (#a #b:Type) (t:test2 a) (f: a -> b) : test2 b =
+    let Test2 (Test1 g) = t in
+    Test2 (Test1 (fun (x:nat) -> wf_test1 (Test1 g) x; map_test2 #a #b (g x) f))
+
+//////////////////////////////////////////////////////////////////////////////////////////
+open FStar.FunctionalExtensionality
+noeq
+type tf =
+  | TF: f:(nat ^-> tf) -> tf
+
+let rec test_tf (f:tf) =
+    match f with
+    | TF g -> TF (on_dom nat (fun x -> test_tf (g x)))
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+//// Termination checking using accessibility predicates ////
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+//We can write the ackermann function (and prove its termination) this way:
+
+let rec ackermann (m n:nat) : Tot nat (decreases %[m; n]) =
+  if m = 0 then n + 1
+  else if n = 0 then ackermann (m - 1) 1
+  else ackermann (m - 1) (ackermann m (n - 1))
+
+//The proof above relies on the in-built lexicographic ordering in F*
+//F* also provides termination checking based on accessibility predicates
+//  using which we can build our own lexicographic ordering and use it
+//See ulib/FStar.LexicographicOrdering.fsti
+
+open FStar.WellFounded
+open FStar.LexicographicOrdering
+
+unfold
+let lt : binrel nat = fun x y -> x < y
+
+unfold
+let lt_dep (_:nat) : binrel nat = lt
+
+let rec lt_well_founded (n:nat) : acc lt n =
+  AccIntro (fun m _ -> lt_well_founded m)
+
+let rec lt_dep_well_founded (m:nat) (n:nat) : acc (lt_dep m) n =
+  AccIntro (fun p _ -> lt_dep_well_founded m p)
+
+unfold
+let nat_nat_lex_ordering
+  : well_founded_relation (x:nat & nat)
+  = lex lt_well_founded lt_dep_well_founded
+
+type higher_nat : Type u#1 =
+  | HZ : higher_nat
+  | HS : higher_nat -> higher_nat
+
+let higher_nat_lt
+  : binrel u#1 u#0 higher_nat
+  = fun x y -> x << y //sub-term ordering on higher nats
+
+let rec higher_nat_lt_well_founded (n:higher_nat)
+  : acc higher_nat_lt n
+  = AccIntro (fun m _ -> higher_nat_lt_well_founded m)
+
+let higher_nat_higher_nat_lex_order
+  : well_founded_relation (x:higher_nat & higher_nat)
+  = lex higher_nat_lt_well_founded (fun _ -> higher_nat_lt_well_founded)
+
+let rec ackermann_wf (m n:nat)
+  : Tot nat (decreases {:well-founded nat_nat_lex_ordering (| m, n |) })
+  = if m = 0 then n + 1
+    else if n = 0 then ackermann_wf (m - 1) 1
+    else ackermann_wf (m - 1) (ackermann_wf m (n - 1))
+
+assume
+val get_previous (#a:Type) (r:well_founded_relation a) (x:a)
+  : option (y:a { r y x })
+  
+let rec rel_parametric (r: nat -> well_founded_relation nat) (y:nat) (x:nat)
+  : Tot nat (decreases {:well-founded r y x})
+  = match get_previous (r y) x with
+    | None -> 0
+    | Some z -> 1 + rel_parametric r y z
+
+module WFU = FStar.WellFounded.Util
+
+//Since rel_poly can be polymorphically recursive in `a`
+//the decreases clause is not type-correct on the recursively bound function
+[@@expect_failure]
+let rec rel_poly (a:Type) (r:well_founded_relation a) (x:a)
+  : Tot nat (decreases {:well-founded r x})
+  = 0
+
+
+let rec rel_poly (a:Type) (r:binrel a) (wf_r:well_founded (WFU.squash_binrel r)) (x:a)
+  : Tot nat (decreases {:well-founded WFU.lift_binrel_squashed_as_well_founded_relation wf_r (| a, x |)})
+  = match get_previous (WFU.lift_binrel_squashed_as_well_founded_relation wf_r) (| a, x |) with
+    | None -> 0
+    | Some z -> 
+      1 + rel_poly a r wf_r (dsnd z)
+
+
+let rec rel_poly2 (a:Type) (r:binrel a) (wf_r:well_founded r) (x:a)
+  : Tot nat (decreases {:well-founded WFU.lift_binrel_as_well_founded_relation wf_r (| a, x |)})
+  = match get_previous (WFU.lift_binrel_as_well_founded_relation wf_r) (| a, x |) with
+    | None -> 0
+    | Some z ->
+      WFU.elim_lift_binrel r z x;
+      1 + rel_poly2 a r wf_r (dsnd z)
+
+//Examples from PR 2561
+open FStar.WellFoundedRelation
+
+// Define `nat_nat_wfr` to represent the lexicographically-precedes
+// relation between two elements of type `nat * nat`.  That is,
+// `(x1, y1)` is related to `(x2, y2)` if
+// `x1 < x2 \/ (x1 == x2 /\ y1 < y2)`.
+
+let nat_nat_wfr = lex_nondep_wfr (default_wfr nat) (default_wfr nat)
+
+// To show that `f` is well-defined, we use the decreases clause
+// `nat_nat_wfr.decreaser (x, y)`.  We then need to show, on each
+// recursive call, that the parameters x2 and y2 to the nested
+// call satisfy `nat_nat_wfr.relation (x2, y2) (x, y)`.
+
+let rec f (x: nat) (y: nat)
+  : Tot nat (decreases (nat_nat_wfr.decreaser (x, y)))
+  = if x = 0 then
+      0
+    else if y = 0 then (
+      // This assertion isn't necessary; it's just for illustration
+      assert (nat_nat_wfr.relation (x - 1, 100) (x, y));
+      f (x - 1) 100
+    )
+    else (
+      // This assertion isn't necessary; it's just for illustration
+      assert (nat_nat_wfr.relation (x, y - 1) (x, y));
+      f x (y - 1)
+    )
+
+
+let rec count_steps_to_none
+  (a: Type)
+  (wfr: wfr_t a)
+  (stepper: (x: a) -> (y: option a{Some? y ==> wfr.relation (Some?.v y) x}))
+  (start: option a)
+  : Tot nat (decreases (option_wfr wfr).decreaser start) =
+  match start with
+  | None -> 0
+  | Some x -> 1 + count_steps_to_none a wfr stepper (stepper x)
+
+
+noeq
+type my_fun_dep (a: Type) (b: a -> Type) =
+  | MyFunDep : (y: a -> b y) -> my_fun_dep a b
+
+type my_fun (a: Type u#n) (b: Type u#m) = my_fun_dep a (fun _ -> b)
+
+let app_dep (#a: Type) (#b: a -> Type) (f: my_fun_dep a b) (x: a) 
+  : b x
+  = let MyFunDep f_inner = f in
+    f_inner x
+
+let app (#a: Type u#n) (#b: Type u#m) (f: my_fun a b) (x: a) : b =
+  let MyFunDep f_inner = f in
+  f_inner x
+
+[@@expect_failure [19]]
+let lemma_my_fun_dep (#a: Type) (#b: (a -> Type)) (f: my_fun_dep a b) (x: a)
+  : Lemma (app_dep f x << f)
+  = ()
+
+[@@expect_failure [19]]
+let lemma_my_fun (#a: Type u#n) (#b: Type u#m) (f: my_fun a b) (x: a)
+  : Lemma (app f x << f)
+  = ()
+
+
+//variant universe levels should be rejected
+[@@expect_failure [90]]
+noeq
+type ind = | Mk : (int -> ind u#0) -> ind u#aa

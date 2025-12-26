@@ -1,0 +1,27 @@
+# Simple 2-bit XOR circuit for testing
+# Format: Simple text format (can be converted to binary)
+# 
+# Inputs: 2 bits (a, b)
+# Output: 1 bit (a XOR b)
+# Gates: 1 XOR gate
+
+CIRCUIT XOR_2BIT
+INPUTS 2
+OUTPUTS 1
+GATES 1
+
+# Gate format: TYPE INPUT1 INPUT2 OUTPUT
+# Wire 0: unused
+# Wire 1: constant 0
+# Wire 2: constant 1
+# Wire 3: input bit 0 (a)
+# Wire 4: input bit 1 (b)
+# Wire 5: output (a XOR b)
+
+GATE XOR 3 4 5
+
+# Expected behavior:
+# Input: 00 -> Output: 0
+# Input: 01 -> Output: 1
+# Input: 10 -> Output: 1
+# Input: 11 -> Output: 0

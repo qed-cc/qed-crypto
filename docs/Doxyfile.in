@@ -1,0 +1,41 @@
+# Doxyfile for Gate Computer project
+
+# Project information
+PROJECT_NAME           = @DOXYGEN_PROJECT_NAME@
+PROJECT_NUMBER         = @DOXYGEN_PROJECT_NUMBER@
+PROJECT_BRIEF          = "@DOXYGEN_PROJECT_BRIEF@"
+OUTPUT_DIRECTORY       = @DOXYGEN_OUTPUT_DIRECTORY@
+
+# Input options
+INPUT                  = @DOXYGEN_INPUT@
+RECURSIVE              = @DOXYGEN_RECURSIVE@
+FILE_PATTERNS          = *.c *.h *.md
+
+# Extract settings
+EXTRACT_ALL            = @DOXYGEN_EXTRACT_ALL@
+EXTRACT_PRIVATE        = @DOXYGEN_EXTRACT_PRIVATE@
+EXTRACT_STATIC         = @DOXYGEN_EXTRACT_STATIC@
+
+# Output formats
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+
+# Diagrams and graphs
+HAVE_DOT               = YES
+UML_LOOK               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+
+# Other settings
+OPTIMIZE_OUTPUT_FOR_C  = YES
+FULL_PATH_NAMES        = YES
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+BUILTIN_STL_SUPPORT    = NO
+DISTRIBUTE_GROUP_DOC   = YES
+GROUP_NESTED_COMPOUNDS = YES
+SORT_BRIEF_DOCS        = YES
+SORT_MEMBERS_CTORS_1ST = YES
+STRICT_PROTO_MATCHING  = YES
+SOURCE_BROWSER         = YES

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truth City - Gate Computer Knowledge Visualization</title>
+    <style>
+        /* SPDX-FileCopyrightText: 2025 Rhett Creighton
+         * SPDX-License-Identifier: Apache-2.0
+         */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #ADD8E6 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* City Grid */
+        #cityContainer {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            perspective: 1200px;
+            overflow: hidden;
+        }
+
+        #cityGrid {
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            left: -10%;
+            top: 55%;
+            transform: rotateX(45deg) translateZ(-200px);
+            transform-style: preserve-3d;
+            background: 
+                repeating-linear-gradient(0deg, rgba(100,100,100,0.3) 0px, transparent 1px, transparent 49px, rgba(100,100,100,0.3) 50px),
+                repeating-linear-gradient(90deg, rgba(100,100,100,0.3) 0px, transparent 1px, transparent 49px, rgba(100,100,100,0.3) 50px);
+            background-size: 50px 50px;
+        }
+
+        /* Buildings */
+        .building {
+            position: absolute;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .building:hover {
+            transform: translateY(-10px) scale(1.1);
+        }
+
+        .building-base {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.1) 100%);
+        }
+
+        .building-roof {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 10px;
+            background: inherit;
+            filter: brightness(0.8);
+            border-radius: 2px;
+        }
+
+        .building-windows {
+            position: absolute;
+            top: 10px;
+            left: 10%;
+            right: 10%;
+            bottom: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .window {
+            background: rgba(255, 255, 200, 0.8);
+            border: 1px solid rgba(0,0,0,0.2);
+            animation: flicker 5s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.9; }
+            51% { opacity: 0.7; }
+            52% { opacity: 0.9; }
+        }
+
+        /* Building Colors by Type */
+        .verified { background: linear-gradient(to bottom, #4CAF50, #2E7D32); }
+        .failed { background: linear-gradient(to bottom, #F44336, #B71C1C); }
+        .uncertain { background: linear-gradient(to bottom, #FFC107, #F57C00); }
+
+        /* HUD */
+        #hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        #hud h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4CAF50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Health Bar */
+        #healthBar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        #healthBar h2 {
+            font-size: 18px;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .health-meter {
+            width: 100%;
+            height: 30px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(to right, #F44336, #FFC107 50%, #4CAF50);
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .health-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 3px rgba(0,0,0,0.8);
+        }
+
+        /* Info Panel */
+        #infoPanel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        #infoPanel.show {
+            opacity: 1;
+        }
+
+        #infoPanel h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        #infoPanel .truth-id {
+            color: #4CAF50;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        #infoPanel .truth-statement {
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        #infoPanel .truth-status {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .status-verified { background: #4CAF50; }
+        .status-failed { background: #F44336; }
+        .status-uncertain { background: #FFC107; color: #333; }
+
+        /* Legend */
+        #legend {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        #legend h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .building {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Loading Screen */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading p {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loader"></div>
+        <p>Building Truth City...</p>
+    </div>
+
+    <!-- City Container -->
+    <div id="cityContainer">
+        <div id="cityGrid"></div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <h1>🏙️ Truth City</h1>
+        <p>Gate Computer Knowledge Base</p>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Total Truths</div>
+                <div class="stat-value" id="totalTruths">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Verified</div>
+                <div class="stat-value" id="verifiedCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Failed</div>
+                <div class="stat-value" id="failedCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Uncertain</div>
+                <div class="stat-value" id="uncertainCount">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Bar -->
+    <div id="healthBar">
+        <h2>City Health Score</h2>
+        <div class="health-meter">
+            <div class="health-fill" id="healthFill">
+                <div class="health-percentage" id="healthPercentage">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div id="infoPanel">
+        <h3>Truth Details</h3>
+        <div class="truth-id" id="truthId"></div>
+        <div class="truth-statement" id="truthStatement"></div>
+        <div class="truth-status" id="truthStatus"></div>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend">
+        <h3>Building Legend</h3>
+        <div class="legend-item">
+            <div class="legend-color verified"></div>
+            <span>Verified Truth ✓</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color failed"></div>
+            <span>False (Correct) ✗</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color uncertain"></div>
+            <span>Uncertain ?</span>
+        </div>
+    </div>
+
+    <script>
+        // Truth data from the verifier
+        const truths = [
+            // Core Truths
+            {id: 'T001', statement: 'SHA3-256 circuit has 192,086 gates', status: 'uncertain', type: 'truth', importance: 5},
+            {id: 'T002', statement: 'BaseFold RAA is the only proof system', status: 'uncertain', type: 'truth', importance: 5},
+            {id: 'T003', statement: 'Zero-knowledge is fully implemented', status: 'verified', type: 'truth', importance: 5},
+            {id: 'T004', statement: 'Effective soundness is 122 bits due to sumcheck limitations', status: 'verified', type: 'truth', importance: 5},
+            
+            // False statements (correctly identified as false)
+            {id: 'F001', statement: 'System claims 128-bit soundness', status: 'uncertain', type: 'false', importance: 4},
+            {id: 'F002', statement: 'Groth16 is still supported', status: 'verified', type: 'false', importance: 4},
+            {id: 'F701', statement: 'Truth City viewer exists', status: 'verified', type: 'false', importance: 3},
+            
+            // Derived truths
+            {id: 'D001', statement: 'Average gates per SHA3 round = 192,086 / 24 ≈ 8,003', status: 'verified', type: 'derived', importance: 2},
+            
+            // Uncertain
+            {id: 'U001', statement: 'Performance on ARM processors', status: 'uncertain', type: 'uncertain', importance: 3},
+            {id: 'U002', statement: 'Proof size can be reduced below 190KB', status: 'uncertain', type: 'uncertain', importance: 3},
+            
+            // Philosophical
+            {id: 'P001', statement: 'Every computation can be represented as a circuit', status: 'verified', type: 'philosophical', importance: 4},
+            {id: 'P002', statement: 'Larger proofs can mean less trust required', status: 'verified', type: 'philosophical', importance: 4},
+            
+            // Performance truths
+            {id: 'T101', statement: 'Proof generation takes ~150ms on modern CPU', status: 'verified', type: 'truth', importance: 4},
+            {id: 'T102', statement: 'Verification takes ~8ms', status: 'verified', type: 'truth', importance: 4},
+            {id: 'T103', statement: 'Memory usage is ~38MB', status: 'uncertain', type: 'truth', importance: 3},
+            {id: 'T104', statement: 'Throughput is 6.7 proofs/second', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T105', statement: 'Supports parallel proof generation with OpenMP', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T106', statement: 'AVX2/AVX512 optimizations accelerate field operations', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T107', statement: 'Proof size is ~190KB with 320 queries', status: 'verified', type: 'truth', importance: 4},
+            {id: 'T108', statement: 'Binary NTT enables efficient polynomial operations', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T109', statement: 'Memory access patterns are cache-friendly', status: 'verified', type: 'truth', importance: 2},
+            {id: 'T110', statement: 'Streaming sumcheck reduces memory footprint', status: 'verified', type: 'truth', importance: 3},
+            
+            // Security truths
+            {id: 'T201', statement: 'No discrete logarithm assumptions', status: 'verified', type: 'truth', importance: 5},
+            {id: 'T202', statement: 'Uses SHA3-256 for collision resistance', status: 'verified', type: 'truth', importance: 5},
+            {id: 'T203', statement: 'Polynomial masking provides zero-knowledge', status: 'verified', type: 'truth', importance: 4},
+            {id: 'T204', statement: 'No trusted setup required', status: 'verified', type: 'truth', importance: 5},
+            {id: 'T205', statement: 'Post-quantum secure against Shor\'s algorithm', status: 'verified', type: 'truth', importance: 5},
+            {id: 'T206', statement: '122-bit soundness error bound', status: 'verified', type: 'truth', importance: 5},
+            {id: 'T207', statement: 'Cryptographically secure randomness via /dev/urandom', status: 'verified', type: 'truth', importance: 4},
+            {id: 'T208', statement: 'Fiat-Shamir transform for non-interactivity', status: 'verified', type: 'truth', importance: 4},
+            {id: 'T209', statement: 'Side-channel resistant field operations', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T210', statement: 'RAA encoding provides systematic redundancy', status: 'verified', type: 'truth', importance: 3},
+            
+            // Implementation truths
+            {id: 'T301', statement: 'Written in C99', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T302', statement: 'Uses CMake build system', status: 'verified', type: 'truth', importance: 2},
+            {id: 'T303', statement: 'Supports OpenMP parallelization', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T304', statement: 'Has AVX2/AVX512 optimizations', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T305', statement: 'Modular architecture with clear separation', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T306', statement: 'Header-only APIs for critical paths', status: 'verified', type: 'truth', importance: 2},
+            {id: 'T307', statement: 'Comprehensive test coverage', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T308', statement: 'Memory safety with bounds checking', status: 'verified', type: 'truth', importance: 4},
+            {id: 'T309', statement: 'Clean API with minimal dependencies', status: 'verified', type: 'truth', importance: 3},
+            {id: 'T310', statement: 'Documentation in code and markdown', status: 'verified', type: 'truth', importance: 2},
+            
+            // Performance false statements
+            {id: 'F101', statement: 'Proofs are smaller than 100KB', status: 'failed', type: 'false', importance: 3},
+            {id: 'F102', statement: 'Verification is slower than proof generation', status: 'failed', type: 'false', importance: 3},
+            {id: 'F103', statement: 'Single-threaded performance only', status: 'failed', type: 'false', importance: 2},
+            {id: 'F104', statement: 'Memory usage exceeds 1GB', status: 'failed', type: 'false', importance: 3},
+            {id: 'F105', statement: 'No GPU acceleration possible', status: 'failed', type: 'false', importance: 2},
+            {id: 'F106', statement: 'Proof generation requires special hardware', status: 'failed', type: 'false', importance: 3},
+            {id: 'F107', statement: 'Linear scaling with circuit size', status: 'failed', type: 'false', importance: 2},
+            {id: 'F108', statement: 'Cannot batch multiple proofs', status: 'failed', type: 'false', importance: 2},
+            {id: 'F109', statement: 'Verification requires full witness', status: 'failed', type: 'false', importance: 3},
+            {id: 'F110', statement: 'Performance degrades with parallelism', status: 'failed', type: 'false', importance: 2},
+            
+            // Future uncertain
+            {id: 'U101', statement: 'GPU acceleration feasibility', status: 'uncertain', type: 'uncertain', importance: 3},
+            {id: 'U102', statement: 'Mobile device support', status: 'uncertain', type: 'uncertain', importance: 2},
+            {id: 'U103', statement: 'WASM compilation possibility', status: 'uncertain', type: 'uncertain', importance: 3},
+            {id: 'U104', statement: 'Quantum-resistant signature integration', status: 'uncertain', type: 'uncertain', importance: 3},
+            {id: 'U105', statement: 'Hardware acceleration via FPGA', status: 'uncertain', type: 'uncertain', importance: 3},
+            {id: 'U106', statement: 'Integration with blockchain systems', status: 'uncertain', type: 'uncertain', importance: 3},
+            {id: 'U107', statement: 'Recursive proof composition', status: 'uncertain', type: 'uncertain', importance: 4},
+            {id: 'U108', statement: 'Real-time proof streaming', status: 'uncertain', type: 'uncertain', importance: 2},
+            {id: 'U109', statement: 'Multi-party computation support', status: 'uncertain', type: 'uncertain', importance: 3},
+            {id: 'U110', statement: 'Formal verification of implementation', status: 'uncertain', type: 'uncertain', importance: 4}
+        ];
+
+        // City layout configuration
+        const GRID_SIZE = 10;
+        const BUILDING_SIZE = 60;
+        const BUILDING_SPACING = 80;
+        const BASE_HEIGHT = 50;
+        const HEIGHT_MULTIPLIER = 30;
+
+        // Initialize city
+        function initCity() {
+            const grid = document.getElementById('cityGrid');
+            const totalBuildings = truths.length;
+            let buildingIndex = 0;
+            
+            // Calculate grid dimensions to fit all buildings
+            const cols = Math.ceil(Math.sqrt(totalBuildings));
+            const rows = Math.ceil(totalBuildings / cols);
+            
+            // Center the city
+            const offsetX = (window.innerWidth - (cols * BUILDING_SPACING)) / 2;
+            const offsetY = 100;
+            
+            truths.forEach((truth, index) => {
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+                
+                const building = createBuilding(truth, col, row, offsetX, offsetY);
+                grid.appendChild(building);
+            });
+            
+            updateStats();
+            updateHealthScore();
+            
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+            }, 1000);
+        }
+
+        // Create a building element
+        function createBuilding(truth, x, y, offsetX, offsetY) {
+            const building = document.createElement('div');
+            building.className = 'building';
+            building.style.width = BUILDING_SIZE + 'px';
+            building.style.height = (BASE_HEIGHT + truth.importance * HEIGHT_MULTIPLIER) + 'px';
+            building.style.left = (x * BUILDING_SPACING + offsetX) + 'px';
+            building.style.top = (y * BUILDING_SPACING + offsetY) + 'px';
+            building.style.animationDelay = (Math.random() * 3) + 's';
+            
+            const base = document.createElement('div');
+            base.className = 'building-base ' + getStatusClass(truth);
+            
+            const roof = document.createElement('div');
+            roof.className = 'building-roof';
+            
+            const windows = document.createElement('div');
+            windows.className = 'building-windows';
+            
+            // Add windows based on building height
+            const windowCount = Math.floor(truth.importance * 2);
+            for (let i = 0; i < windowCount; i++) {
+                const window = document.createElement('div');
+                window.className = 'window';
+                window.style.animationDelay = (Math.random() * 5) + 's';
+                windows.appendChild(window);
+            }
+            
+            base.appendChild(windows);
+            building.appendChild(base);
+            building.appendChild(roof);
+            
+            // Click handler
+            building.addEventListener('click', () => showTruthInfo(truth));
+            
+            return building;
+        }
+
+        // Get status class for building color
+        function getStatusClass(truth) {
+            if (truth.type === 'false') {
+                // For false statements, 'failed' means correctly identified as false (good)
+                return truth.status === 'failed' ? 'verified' : 'failed';
+            }
+            return truth.status === 'verified' ? 'verified' : 
+                   truth.status === 'failed' ? 'failed' : 'uncertain';
+        }
+
+        // Show truth information
+        function showTruthInfo(truth) {
+            const panel = document.getElementById('infoPanel');
+            document.getElementById('truthId').textContent = truth.id;
+            document.getElementById('truthStatement').textContent = truth.statement;
+            
+            const statusEl = document.getElementById('truthStatus');
+            let statusText = '';
+            let statusClass = '';
+            
+            if (truth.type === 'false') {
+                if (truth.status === 'failed') {
+                    statusText = '✓ Correctly identified as FALSE';
+                    statusClass = 'status-verified';
+                } else {
+                    statusText = '✗ Incorrectly marked as TRUE';
+                    statusClass = 'status-failed';
+                }
+            } else {
+                statusText = truth.status === 'verified' ? '✓ VERIFIED' :
+                            truth.status === 'failed' ? '✗ FAILED' : '? UNCERTAIN';
+                statusClass = 'status-' + truth.status;
+            }
+            
+            statusEl.textContent = statusText;
+            statusEl.className = 'truth-status ' + statusClass;
+            
+            panel.classList.add('show');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                panel.classList.remove('show');
+            }, 5000);
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = truths.length;
+            let verified = 0;
+            let failed = 0;
+            let uncertain = 0;
+            
+            truths.forEach(truth => {
+                if (truth.type === 'false') {
+                    // For false statements, count differently
+                    if (truth.status === 'failed') verified++;
+                    else if (truth.status === 'verified') failed++;
+                    else uncertain++;
+                } else {
+                    if (truth.status === 'verified') verified++;
+                    else if (truth.status === 'failed') failed++;
+                    else uncertain++;
+                }
+            });
+            
+            document.getElementById('totalTruths').textContent = total;
+            document.getElementById('verifiedCount').textContent = verified;
+            document.getElementById('failedCount').textContent = failed;
+            document.getElementById('uncertainCount').textContent = uncertain;
+        }
+
+        // Update health score
+        function updateHealthScore() {
+            const total = truths.length;
+            let score = 0;
+            
+            truths.forEach(truth => {
+                if (truth.type === 'false') {
+                    // For false statements, being failed is good
+                    if (truth.status === 'failed') score += truth.importance;
+                } else {
+                    // For true statements, being verified is good
+                    if (truth.status === 'verified') score += truth.importance;
+                }
+            });
+            
+            const maxScore = truths.reduce((sum, truth) => sum + truth.importance, 0);
+            const percentage = Math.round((score / maxScore) * 100);
+            
+            const healthFill = document.getElementById('healthFill');
+            const healthPercentage = document.getElementById('healthPercentage');
+            
+            healthFill.style.width = percentage + '%';
+            healthPercentage.textContent = percentage + '%';
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initCity);
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Could reposition buildings here if needed
+        });
+    </script>
+</body>
+</html>
