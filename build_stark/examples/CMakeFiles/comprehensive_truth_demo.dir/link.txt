@@ -1,0 +1,1 @@
+/usr/bin/cc  -fopenmp -O3 -DNDEBUG -O3 -march=native -mtune=native -funroll-loops -finline-functions -finline-limit=10000 -fomit-frame-pointer -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--dependency-file=CMakeFiles/comprehensive_truth_demo.dir/link.d CMakeFiles/comprehensive_truth_demo.dir/comprehensive_truth_demo.c.o -o ../bin/comprehensive_truth_demo  ../lib/libtruth_verifier.a

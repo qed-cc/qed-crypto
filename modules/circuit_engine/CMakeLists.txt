@@ -17,16 +17,16 @@ target_include_directories(circuit_engine
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# Dependencies
-find_package(circuit_io REQUIRED)
-find_package(circuit_evaluator REQUIRED)
+# Dependencies (commented out - these modules don't exist as packages)
+# find_package(circuit_io REQUIRED)
+# find_package(circuit_evaluator REQUIRED)
 
-# Link dependencies
-target_link_libraries(circuit_engine
-    PUBLIC
-        circuit_io
-        circuit_evaluator
-)
+# Link dependencies (use internal includes only)
+# target_link_libraries(circuit_engine
+#     PUBLIC
+#         circuit_io
+#         circuit_evaluator
+# )
 
 # Set compile definitions
 target_compile_definitions(circuit_engine PRIVATE CIRCUIT_IO_HAVE_PARSE_FILE)

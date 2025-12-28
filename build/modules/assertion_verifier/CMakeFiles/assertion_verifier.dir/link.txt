@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/libassertion_verifier.a CMakeFiles/assertion_verifier.dir/src/assertion_chain.c.o CMakeFiles/assertion_verifier.dir/src/fopl_verifier.c.o CMakeFiles/assertion_verifier.dir/src/ai_consensus.c.o CMakeFiles/assertion_verifier.dir/src/sha3_validity.c.o
+/usr/bin/ranlib ../../lib/libassertion_verifier.a

@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG -O3 -march=native -mtune=native -funroll-loops -finline-functions -finline-limit=10000 -fomit-frame-pointer -flto=auto -fno-fat-lto-objects -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--dependency-file=CMakeFiles/test_sha3.dir/link.d CMakeFiles/test_sha3.dir/tests/test_sha3.c.o -o ../../bin/test_sha3  ../../lib/libsha3.a

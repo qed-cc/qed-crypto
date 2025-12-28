@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include "../include/basefold_raa.h"
 #include "../../gf128/include/gf128.h"
-#include "../../circuit_evaluator/include/evaluator.h"
+#include "../../circuit_engine/src/evaluator.h"
 
 /**
  * @brief Create a witness from a circuit evaluation trace

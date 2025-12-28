@@ -1,0 +1,22 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/bob/github/qedc-5/qed-crypto/build/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/common/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/sha3/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/gf128/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/basefold_raa/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/truth_verifier/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/assertion_verifier/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/basefold/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/circuit_engine/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/circuit_engine/tests/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/modules/circuit_engine/apps/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/src/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/apps/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/apps/cmptr/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build/examples/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

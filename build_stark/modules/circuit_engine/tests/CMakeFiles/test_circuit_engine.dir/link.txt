@@ -1,0 +1,1 @@
+/usr/bin/cc  -fopenmp -O3 -DNDEBUG -O3 -march=native -mtune=native -funroll-loops -finline-functions -finline-limit=10000 -fomit-frame-pointer -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--dependency-file=CMakeFiles/test_circuit_engine.dir/link.d CMakeFiles/test_circuit_engine.dir/test_circuit_engine.c.o -o ../../../bin/test_circuit_engine  ../../../lib/libcircuit_engine.a

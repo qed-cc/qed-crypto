@@ -14,7 +14,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "../include/basefold_raa.h"
-#include "../../circuit_evaluator/include/evaluator.h"
+#include "../../circuit_engine/src/evaluator.h"
 #include "../../gf128/include/gf128.h"
 
 /**

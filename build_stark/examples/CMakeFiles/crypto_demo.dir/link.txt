@@ -1,0 +1,1 @@
+/usr/bin/cc  -fopenmp -O3 -DNDEBUG -O3 -march=native -mtune=native -funroll-loops -finline-functions -finline-limit=10000 -fomit-frame-pointer -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--dependency-file=CMakeFiles/crypto_demo.dir/link.d CMakeFiles/crypto_demo.dir/crypto_demo.c.o -o ../bin/crypto_demo

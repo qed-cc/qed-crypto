@@ -17,26 +17,25 @@ target_link_libraries(circuit_engine_app
         circuit_engine
 )
 
-# Add the final SHA3 implementation test
-add_executable(circuit_engine_test
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../gate_computer/final_sha3_impl_test.c
-)
+# Add the final SHA3 implementation test (disabled - file doesn't exist)
+# add_executable(circuit_engine_test
+#     ${CMAKE_CURRENT_SOURCE_DIR}/../../gate_computer/final_sha3_impl_test.c
+# )
 
 # Include directories for the test
-target_include_directories(circuit_engine_test PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src
-)
+# target_include_directories(circuit_engine_test PRIVATE
+#     ${CMAKE_CURRENT_SOURCE_DIR}/../include
+#     ${CMAKE_CURRENT_SOURCE_DIR}/../src
+# )
 
 # Link the test to the main library
-target_link_libraries(circuit_engine_test
-    PRIVATE
-        circuit_engine
-)
+# target_link_libraries(circuit_engine_test
+#     PRIVATE
+#         circuit_engine
+# )
 
 # Install the executables
-install(TARGETS 
-    circuit_engine_app 
-    circuit_engine_test
+install(TARGETS
+    circuit_engine_app
     DESTINATION bin
 )

@@ -1,0 +1,2 @@
+"/usr/bin/gcc-ar" qc ../../lib/libgf128.a CMakeFiles/gf128.dir/src/gf128_base.c.o CMakeFiles/gf128.dir/src/gf128_table.c.o CMakeFiles/gf128.dir/src/gf128_inv.c.o CMakeFiles/gf128.dir/src/gf128_dispatch.c.o CMakeFiles/gf128.dir/src/cpu_features.c.o CMakeFiles/gf128.dir/src/gf128_pclmul.c.o
+"/usr/bin/gcc-ranlib" ../../lib/libgf128.a

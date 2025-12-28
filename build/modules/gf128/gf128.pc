@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=/usr/local
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: gf128
+Description: GF(2^128) arithmetic library
+Version: 0.1.0
+Libs: -L${libdir} -lgf128
+Cflags: -I${includedir}

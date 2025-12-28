@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 #include "../../gf128/include/gf128.h"
-#include "../../circuit_evaluator/include/evaluator.h"
+#include "../../circuit_engine/src/evaluator.h"
 
 /**
  * @file gate_witness_generator.h

@@ -1,0 +1,22 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/common/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/sha3/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/gf128/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/basefold_raa/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/truth_verifier/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/assertion_verifier/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/basefold/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/circuit_engine/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/circuit_engine/tests/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/modules/circuit_engine/apps/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/src/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/apps/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/apps/cmptr/cmake_install.cmake",
+		"/home/bob/github/qedc-5/qed-crypto/build_stark/examples/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

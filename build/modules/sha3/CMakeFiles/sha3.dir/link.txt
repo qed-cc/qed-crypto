@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/libsha3.a CMakeFiles/sha3.dir/src/sha3.c.o CMakeFiles/sha3.dir/src/sha3_avx2.c.o CMakeFiles/sha3.dir/src/sha3_avx2_batch.c.o CMakeFiles/sha3.dir/src/sha3_parallel.c.o CMakeFiles/sha3.dir/src/keccak.c.o CMakeFiles/sha3.dir/src/keccak_avx2.c.o CMakeFiles/sha3.dir/src/keccak_avx512.c.o CMakeFiles/sha3.dir/src/shake.c.o CMakeFiles/sha3.dir/src/hash_function.c.o CMakeFiles/sha3.dir/src/merkle.c.o "CMakeFiles/sha3.dir/vendor/XKCP/lib/low/KeccakP-1600-times8/AVX512/KeccakP-1600-times8-SIMD512.c.o"
+/usr/bin/ranlib ../../lib/libsha3.a

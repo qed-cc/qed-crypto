@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/libcircuit_engine.a CMakeFiles/circuit_engine.dir/src/sha3_final.c.o CMakeFiles/circuit_engine.dir/src/circuit_format.c.o CMakeFiles/circuit_engine.dir/src/evaluator.c.o
+/usr/bin/ranlib ../../lib/libcircuit_engine.a

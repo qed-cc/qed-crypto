@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libgate_core.a CMakeFiles/gate_core.dir/core/gate_core.c.o
+/usr/bin/ranlib ../lib/libgate_core.a

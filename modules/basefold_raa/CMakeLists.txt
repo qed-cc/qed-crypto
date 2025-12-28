@@ -18,6 +18,7 @@ set(BASEFOLD_RAA_SOURCES
     src/circuit_witness_generator.c
     src/gate_witness_generator.c
     src/constraint_polynomial.c
+    src/circuit_to_witness.c   # Circuit evaluation to STARK witness
     src/raa_ras_integration.c  # RAS integration functions
     # src/circular_recursion.c  # Disabled - needs proper circuit types
 )
@@ -26,8 +27,8 @@ set(BASEFOLD_RAA_SOURCES
 add_library(basefold_raa STATIC ${BASEFOLD_RAA_SOURCES})
 
 # Include directories
-target_include_directories(basefold_raa 
-    PUBLIC 
+target_include_directories(basefold_raa
+    PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
@@ -37,6 +38,7 @@ target_include_directories(basefold_raa
         ${CMAKE_SOURCE_DIR}/modules/common/include   # Add common includes
         ${CMAKE_SOURCE_DIR}/modules/gf128/include    # Add gf128 includes
         ${CMAKE_SOURCE_DIR}/modules/circuit_generator/include  # For recursive circuits
+        ${CMAKE_SOURCE_DIR}/modules/circuit_engine/src  # For circuit evaluator
 )
 
 # Link dependencies
@@ -47,6 +49,7 @@ target_link_libraries(basefold_raa
         basefold  # For sumcheck and binary NTT
         common    # For secure random
         circuit_generator  # For recursive circuits
+        circuit_engine     # For circuit evaluation
 )
 
 # Set properties

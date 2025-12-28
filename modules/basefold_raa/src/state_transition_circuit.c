@@ -19,7 +19,7 @@
 #include "../include/basefold_raa.h"
 #include "../include/state_transition.h"
 #include "../../sha3/include/sha3.h"
-#include "../../circuit_evaluator/include/evaluator.h"
+#include "../../circuit_engine/src/evaluator.h"
 
 /* blockchain_circuit_state_t is defined in state_transition.h */
 

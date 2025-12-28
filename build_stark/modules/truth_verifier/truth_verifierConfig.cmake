@@ -1,0 +1,5 @@
+
+
+include("${CMAKE_CURRENT_LIST_DIR}/truth_verifierTargets.cmake")
+
+check_required_components(truth_verifier)

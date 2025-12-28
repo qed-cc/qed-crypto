@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG -O3 -march=native -mtune=native -funroll-loops -finline-functions -finline-limit=10000 -fomit-frame-pointer -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--dependency-file=CMakeFiles/sha3_working.dir/link.d CMakeFiles/sha3_working.dir/sha3_working.c.o -o ../bin/sha3_working  ../lib/libsha3.a
